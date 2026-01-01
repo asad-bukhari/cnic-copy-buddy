@@ -1,5 +1,6 @@
-name: Android APK Build
+name: CNIC Copy Buddy APK Build
 
+# Trigger workflow on push to main or manual trigger
 on:
   push:
     branches:
@@ -10,61 +11,63 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # Force Gradle to use Java 17
     env:
+      JAVA_HOME: /opt/hostedtoolcache/temurin/17.0.9/x64
       GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs='-Xmx2g -Dfile.encoding=UTF-8'"
 
     steps:
-      # 1. Checkout repo
+      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Setup Node
+      # 2️⃣ Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      # 3. Install dependencies
+      # 3️⃣ Install npm dependencies
       - name: Install npm dependencies
         run: npm install
 
-      # 4. Build web app
+      # 4️⃣ Build web app (for Capacitor)
       - name: Build web app
         run: npm run build
 
-      # 5. Setup Java 17
+      # 5️⃣ Setup Java 17 (Temurin)
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      # 6. Setup Android SDK
+      # 6️⃣ Setup Android SDK
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # 7. Clear Gradle cache (CRITICAL FIX)
+      # 7️⃣ Clear Gradle cache (fixes bcprov issues)
       - name: Clear Gradle cache
         run: rm -rf ~/.gradle/caches ~/.gradle/wrapper
 
-      # 8. Install Capacitor
+      # 8️⃣ Install Capacitor CLI and Android platform
       - name: Install Capacitor
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
           npx cap add android || true
           npx cap sync
 
-      # 9. Fix Gradle permissions
+      # 9️⃣ Fix Gradle permissions
       - name: Fix Gradle permissions
         run: chmod +x android/gradlew
 
-      # 10. Build APK (NO daemon)
+      # 🔟 Build APK using Gradle (Debug build)
       - name: Build APK
         run: |
           cd android
           ./gradlew assembleDebug --no-daemon --stacktrace
 
-      # 11. Upload APK
+      # 1️⃣1️⃣ Upload APK as artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
