@@ -10,26 +10,29 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs='-Xmx2g -Dfile.encoding=UTF-8'"
+
     steps:
-      # 1. Checkout code
+      # 1. Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Setup Node.js
+      # 2. Setup Node
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      # 3. Install npm dependencies
-      - name: Install dependencies
+      # 3. Install dependencies
+      - name: Install npm dependencies
         run: npm install
 
-      # 4. Build web app (Vite → dist)
+      # 4. Build web app
       - name: Build web app
         run: npm run build
 
-      # 5. Setup Java (required for Android)
+      # 5. Setup Java 17
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -40,24 +43,28 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # 7. Install Capacitor (CLI + Android)
+      # 7. Clear Gradle cache (CRITICAL FIX)
+      - name: Clear Gradle cache
+        run: rm -rf ~/.gradle/caches ~/.gradle/wrapper
+
+      # 8. Install Capacitor
       - name: Install Capacitor
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
           npx cap add android || true
           npx cap sync
 
-      # 8. Fix Gradle permissions
+      # 9. Fix Gradle permissions
       - name: Fix Gradle permissions
         run: chmod +x android/gradlew
 
-      # 9. Build Debug APK
+      # 10. Build APK (NO daemon)
       - name: Build APK
         run: |
           cd android
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
-      # 10. Upload APK artifact
+      # 11. Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
