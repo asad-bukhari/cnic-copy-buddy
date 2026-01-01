@@ -11,39 +11,53 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      # 1. Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      # 2. Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
+      # 3. Install npm dependencies
       - name: Install dependencies
         run: npm install
 
+      # 4. Build web app (Vite → dist)
       - name: Build web app
         run: npm run build
 
+      # 5. Setup Java (required for Android)
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
 
+      # 6. Setup Android SDK
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Capacitor Android
+      # 7. Install Capacitor (CLI + Android)
+      - name: Install Capacitor
         run: |
-          npm install @capacitor/android
-          npx cap sync android
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npx cap add android || true
+          npx cap sync
 
+      # 8. Fix Gradle permissions
+      - name: Fix Gradle permissions
+        run: chmod +x android/gradlew
+
+      # 9. Build Debug APK
       - name: Build APK
         run: |
           cd android
           ./gradlew assembleDebug
 
+      # 10. Upload APK artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
