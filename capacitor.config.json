@@ -1,9 +1,5 @@
 {
   "appId": "app.lovable.e6711fdf55e54f009246c140ef044f34",
   "appName": "CNIC Copy Generator",
-  "webDir": "dist",
-  "server": {
-    "url": "https://e6711fdf-55e5-4f00-9246-c140ef044f34.lovableproject.com?forceHideBadge=true",
-    "cleartext": true
-  }
+  "webDir": "dist"
 }
